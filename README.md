@@ -45,6 +45,9 @@ It will look if the .bank file exists in the sound/Desktop folder. If it does it
 ### Why isn't the modded .xdelta patch working?
 Either your game needs to be updated to the latest version or the mod creator needs to update their .xdelta patch to be used with the latest verseion.
 
+### Why is the mod not working?
+If there are no error messages with xdelta patches and the mod still isn't working, then the mod doesn't have any of the file type criteria as described in How It Works
+
 ### Why can't I use multiple mods at once?
 Unless someone comes up with an alternative way of modding the game besides using xdelta patches, Pizza Oven will continue to only allow users to use one mod at a time. If a method becomes available, please let me know ASAP and I will work on incorporating it.
 
