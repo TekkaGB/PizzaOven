@@ -34,6 +34,7 @@ namespace PizzaOven
         public static bool Build(string mod)
         {
             var errors = 0;
+            var successes = 0;
             var FilesToPatch = Directory.GetFiles($"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop").ToList();
             FilesToPatch.Insert(0, $"{Global.config.ModsFolder}{Global.s}data.win");
             foreach (var modFile in Directory.GetFiles(mod, "*", SearchOption.AllDirectories))
@@ -64,6 +65,7 @@ namespace PizzaOven
                                     File.Copy(file, $"{file}.po", true);
                                 File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", file, true);
                             }
+                            successes++;
                         }
                         catch (Exception e)
                         {
@@ -89,6 +91,7 @@ namespace PizzaOven
                         // Copy over file to lang folder
                         File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}lang{Global.s}{Path.GetFileName(modFile)}", true);
                         Global.logger.WriteLine($"Copied over {modFile} to language folder", LoggerType.Info);
+                        successes++;
                     }
                 }
                 // Font .png files
@@ -102,6 +105,7 @@ namespace PizzaOven
                         // Copy over file to fonts folder
                         File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}lang{Global.s}fonts{Global.s}{Path.GetFileName(modFile)}", true);
                         Global.logger.WriteLine($"Copied over {modFile} to fonts folder", LoggerType.Info);
+                        successes++;
                     }
                 }
                 // Copy over .win file in case modder provides entire file instead of .xdelta patch
@@ -109,6 +113,7 @@ namespace PizzaOven
                 {
                     File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}PizzaOven.win", true);
                     Global.logger.WriteLine($"Copied over {modFile} to use instead of data.win", LoggerType.Info);
+                    successes++;
                 }
                 // Copy over .bank file in case modder provides entire file instead of .xdelta patch
                 else if (extension.Equals(".bank", StringComparison.InvariantCultureIgnoreCase))
@@ -121,6 +126,7 @@ namespace PizzaOven
                             File.Copy(FileToReplace, $"{FileToReplace}.po", true);
                         File.Copy(modFile, FileToReplace, true);
                         Global.logger.WriteLine($"Copied over {modFile} to use sounds folder", LoggerType.Info);
+                        successes++;
                     }
                     else
                     {
@@ -129,7 +135,9 @@ namespace PizzaOven
                     }
                 }
             }
-            return errors == 0;
+            if (successes == 0)
+                Global.logger.WriteLine($"No file was used from the current mod", LoggerType.Error);
+            return errors == 0 && successes > 0;
         }
 
         private static void Patch(string file, string patch, string output)

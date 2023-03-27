@@ -371,6 +371,8 @@ namespace PizzaOven
                 var mods = Global.config.ModList.Where(x => x.enabled).ToList();
                 if (mods.Count == 1)
                     return ModLoader.Build($@"{Global.assemblyLocation}{Global.s}Mods{Global.s}{mods[0].name}");
+                else if (mods.Count == 0)
+                    return true;
                 else
                     return false;
             });
