@@ -48,6 +48,9 @@ Either your game needs to be updated to the latest version or the mod creator ne
 ### Why is the mod not working?
 If there are no error messages with xdelta patches and the mod still isn't working, then the mod doesn't have any of the file type criteria as described in How It Works
 
+### Why does it say code error when I launch the game?
+The data.win file that the modder provided does not match with your game's version.
+
 ### Why can't I use multiple mods at once?
 Unless someone comes up with an alternative way of modding the game besides using xdelta patches, Pizza Oven will continue to only allow users to use one mod at a time. If a method becomes available, please let me know ASAP and I will work on incorporating it.
 
