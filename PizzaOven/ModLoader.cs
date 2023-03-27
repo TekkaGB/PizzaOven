@@ -118,14 +118,14 @@ namespace PizzaOven
                 // Copy over .bank file in case modder provides entire file instead of .xdelta patch
                 else if (extension.Equals(".bank", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var FileToReplace = $"{Global.config.ModsFolder}{Global.s}sounds{Global.s}Desktop{Global.s}{Path.GetFileName(modFile)}";
+                    var FileToReplace = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop{Global.s}{Path.GetFileName(modFile)}";
                     if (File.Exists(FileToReplace))
                     {
                         // Only make backup if it doesn't already exist
                         if (!File.Exists($"{FileToReplace}.po"))
                             File.Copy(FileToReplace, $"{FileToReplace}.po", true);
                         File.Copy(modFile, FileToReplace, true);
-                        Global.logger.WriteLine($"Copied over {modFile} to use sounds folder", LoggerType.Info);
+                        Global.logger.WriteLine($"Copied over {modFile} to use sound folder", LoggerType.Info);
                         successes++;
                     }
                     else
