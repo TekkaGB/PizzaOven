@@ -25,7 +25,7 @@ namespace PizzaOven
         public static async Task<bool> CheckForPizzaOvenUpdate(CancellationTokenSource cancellationToken)
         {
             // Get Version Number
-            var localVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
+            var localVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             try
             {
                 var requestUrl = $"https://api.gamebanana.com/Core/Item/Data?itemtype=Tool&itemid=12625&fields=Updates().bSubmissionHasUpdates()," +
