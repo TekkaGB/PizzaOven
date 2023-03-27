@@ -30,7 +30,7 @@ namespace PizzaOven.UI
             Description.Text = update ? $"Links from the Alternate File Sources section were found. You can " +
                 $"select one to manually download.\nTo update, delete the previous files from and extract the downloaded archive into:"
                 : $"Links from the Alternate File Sources section were found. You can " +
-                $"select one to manually download.\nTo install, extract the downloaded archive into:";
+                $"select one to manually download.\nTo install, drag and drop the downloaded file into the mod grid or extract the downloaded archive into:";
             PathText.Text = update ? $"{Global.assemblyLocation}{Global.s}Mods{Global.s}{packageName}" 
                 : $"{Global.assemblyLocation}{Global.s}Mods";
             FetchDescription.Text = update ? $"To fetch GameBanana metadata for the manual update, Right click {packageName} > " +
