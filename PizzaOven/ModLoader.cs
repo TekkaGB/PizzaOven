@@ -18,13 +18,15 @@ namespace PizzaOven
             var LanguageFolder = $"{Global.config.ModsFolder}{Global.s}lang";
             // Restore all backups of .bank files
             RestoreDirectory(SoundsFolder);
+            
             // Delete font folder if it exists
-            if (Directory.Exists($"{LanguageFolder}{Global.s}fonts"))
-                Directory.Delete($"{LanguageFolder}{Global.s}fonts", true);
+            //if (Directory.Exists($"{LanguageFolder}{Global.s}fonts"))
+                //Directory.Delete($"{LanguageFolder}{Global.s}fonts", true);
             // Delete all language files that aren't English
-            foreach (var file in Directory.GetFiles(LanguageFolder))
-                if (!Path.GetFileName(file).Equals("english.txt", StringComparison.InvariantCultureIgnoreCase))
-                    File.Delete(file);
+            //foreach (var file in Directory.GetFiles(LanguageFolder))
+                //if (!Path.GetFileName(file).Equals("english.txt", StringComparison.InvariantCultureIgnoreCase))
+                    //File.Delete(file);
+
             // Delete modded .win
             if (File.Exists($"{Global.config.ModsFolder}{Global.s}PizzaOven.win"))
                 File.Delete($"{Global.config.ModsFolder}{Global.s}PizzaOven.win");
