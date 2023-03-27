@@ -254,7 +254,7 @@ namespace PizzaOven
                 Global.logger.WriteLine($"Cooking mods for Pizza Tower", LoggerType.Info);
                 if (!await Build(Global.config.ModsFolder))
                 {
-                    Global.logger.WriteLine($"Failed to cook", LoggerType.Error);
+                    Global.logger.WriteLine($"Pizza Oven failed to cook the selected mod and will not launch the game", LoggerType.Error);
                     ModGrid.IsEnabled = true;
                     ConfigButton.IsEnabled = true;
                     LaunchButton.IsEnabled = true;
@@ -370,8 +370,9 @@ namespace PizzaOven
                     return false;
                 var mods = Global.config.ModList.Where(x => x.enabled).ToList();
                 if (mods.Count == 1)
-                    ModLoader.Build($@"{Global.assemblyLocation}{Global.s}Mods{Global.s}{mods[0].name}");
-                return true;
+                    return ModLoader.Build($@"{Global.assemblyLocation}{Global.s}Mods{Global.s}{mods[0].name}");
+                else
+                    return false;
             });
         }
 

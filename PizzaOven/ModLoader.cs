@@ -31,8 +31,9 @@ namespace PizzaOven
             return true;
         }
         // Copy over mod files in order of ModList
-        public static void Build(string mod)
+        public static bool Build(string mod)
         {
+            var errors = 0;
             var FilesToPatch = Directory.GetFiles($"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop").ToList();
             FilesToPatch.Insert(0, $"{Global.config.ModsFolder}{Global.s}data.win");
             foreach (var modFile in Directory.GetFiles(mod, "*", SearchOption.AllDirectories))
@@ -76,6 +77,7 @@ namespace PizzaOven
                     if (!success)
                     {
                         Global.logger.WriteLine($"{modFile} wasn't able to patch any file. Ensure that either the mod xdelta patch or your game version is up to date", LoggerType.Error);
+                        errors++;
                     }
                 }
                 // Language .txt files
@@ -121,9 +123,13 @@ namespace PizzaOven
                         Global.logger.WriteLine($"Copied over {modFile} to use sounds folder", LoggerType.Info);
                     }
                     else
+                    {
                         Global.logger.WriteLine($"{FileToReplace} does not exist", LoggerType.Error);
+                        errors++;
+                    }
                 }
             }
+            return errors == 0;
         }
 
         private static void Patch(string file, string patch, string output)
