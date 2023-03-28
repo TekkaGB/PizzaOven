@@ -8,7 +8,7 @@ namespace PizzaOven
     {
         public static bool InstallGBHandler()
         {
-            string AppPath = Path.ChangeExtension(Assembly.GetExecutingAssembly().Location, ".exe");
+            string AppPath = $"{Global.assemblyLocation}{Global.s}PizzaOven.exe";
             string protocolName = $"pizzaoven";
             try
             {
