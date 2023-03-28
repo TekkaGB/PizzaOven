@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\PizzaOvenIcon.ico</ApplicationIcon>
     <AssemblyName>PizzaOven</AssemblyName>
-    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <AssemblyVersion>1.0.3.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,7 +28,6 @@
     <PackageReference Include="SharpCompress" Version="0.28.1" />
     <PackageReference Include="WindowsAPICodePack-Core" Version="1.1.2" />
     <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
-    <PackageReference Include="xdelta3.net" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,6 +44,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Dependencies\xdelta.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <Page Update="UI\ChoiceWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
@@ -56,10 +61,6 @@
     <Page Update="UI\AltLinkWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Dependencies\" />
   </ItemGroup>
 
 </Project>

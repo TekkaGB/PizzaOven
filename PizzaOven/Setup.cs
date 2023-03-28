@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using xdelta3.net;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Windows;
 

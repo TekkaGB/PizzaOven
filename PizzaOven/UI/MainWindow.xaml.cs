@@ -20,7 +20,6 @@ using PizzaOven.UI;
 using System.Windows.Controls.Primitives;
 using System.Security.Cryptography;
 using Microsoft.Win32;
-using xdelta3.net;
 using System.Windows.Input;
 using System.Windows.Data;
 using SharpCompress.Archives.SevenZip;

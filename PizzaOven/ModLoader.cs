@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
-using xdelta3.net;
 
 namespace PizzaOven
 {
@@ -39,6 +38,13 @@ namespace PizzaOven
             var successes = 0;
             var FilesToPatch = Directory.GetFiles($"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop").ToList();
             FilesToPatch.Insert(0, $"{Global.config.ModsFolder}{Global.s}data.win");
+            var xdelta = $"{Global.assemblyLocation}{Global.s}Dependencies{Global.s}xdelta.exe";
+            if (!File.Exists(xdelta))
+            {
+
+                Global.logger.WriteLine($"{xdelta} is not found. Please try redownloading Pizza Oven", LoggerType.Error);
+                return false;
+            }
             foreach (var modFile in Directory.GetFiles(mod, "*", SearchOption.AllDirectories))
             {
                 var extension = Path.GetExtension(modFile);
@@ -57,7 +63,7 @@ namespace PizzaOven
                         {
                             // Attempt to patch file
                             Global.logger.WriteLine($"Attempting to patch {file} with {modFile}...", LoggerType.Info);
-                            Patch(file, modFile, $"{Path.GetDirectoryName(file)}{Global.s}temp");
+                            Patch(file, modFile, $"{Path.GetDirectoryName(file)}{Global.s}temp", xdelta);
                             if (Path.GetFileName(file).Equals("data.win", StringComparison.InvariantCultureIgnoreCase))
                                 File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", $"{Path.GetDirectoryName(file)}{Global.s}PizzaOven.win", true);
                             else
@@ -142,12 +148,21 @@ namespace PizzaOven
             return errors == 0 && successes > 0;
         }
 
-        private static void Patch(string file, string patch, string output)
+        private static void Patch(string file, string patch, string output, string xdelta)
         {
-            var fileBytes = File.ReadAllBytes(file);
-            var patchBytes = File.ReadAllBytes(patch);
-            var decoded = Xdelta3Lib.Decode(fileBytes, patchBytes);
-            File.WriteAllBytes(output, decoded.ToArray());
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.CreateNoWindow = true;
+            startInfo.UseShellExecute = false;
+            startInfo.FileName = xdelta;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.WorkingDirectory = Path.GetDirectoryName(xdelta);
+            startInfo.Arguments = $@"-d -s ""{file}"" ""{patch}"" ""{output}""";
+            using (Process process = new Process())
+            {
+                process.StartInfo = startInfo;
+                process.Start();
+                process.WaitForExit();
+            }
             Global.logger.WriteLine($"Applied {patch} to {file}.", LoggerType.Info);
         }
         private static void RestoreDirectory(string path)
