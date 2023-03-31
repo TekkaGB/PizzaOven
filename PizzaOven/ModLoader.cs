@@ -57,7 +57,7 @@ namespace PizzaOven
                             if (!File.Exists($"{file}.po"))
                                 File.Copy(file, $"{file}.po", true);
                             File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", file, true);
-                            Global.logger.WriteLine($"Applied {file} to {modFile}.", LoggerType.Info);
+                            Global.logger.WriteLine($"Applied {modFile} to {file}.", LoggerType.Info);
                             successes++;
                         }
                         catch (Exception e)
@@ -122,7 +122,7 @@ namespace PizzaOven
                         if (!File.Exists($"{FileToReplace}.po"))
                             File.Copy(FileToReplace, $"{FileToReplace}.po", true);
                         File.Copy(modFile, FileToReplace, true);
-                        Global.logger.WriteLine($"Copied over {modFile} to use sound folder", LoggerType.Info);
+                        Global.logger.WriteLine($"Copied over {modFile} to use in sound folder", LoggerType.Info);
                         successes++;
                     }
                     else
