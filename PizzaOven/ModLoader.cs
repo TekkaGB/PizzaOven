@@ -57,6 +57,7 @@ namespace PizzaOven
                             if (!File.Exists($"{file}.po"))
                                 File.Copy(file, $"{file}.po", true);
                             File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", file, true);
+                            Global.logger.WriteLine($"Applied {file} to {modFile}.", LoggerType.Info);
                             successes++;
                         }
                         catch (Exception e)
@@ -151,7 +152,6 @@ namespace PizzaOven
                 process.Start();
                 process.WaitForExit();
             }
-            Global.logger.WriteLine($"Applied {patch} to {file}.", LoggerType.Info);
         }
         private static void RestoreDirectory(string path)
         {
