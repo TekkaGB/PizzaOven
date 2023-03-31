@@ -288,8 +288,6 @@ namespace PizzaOven
                         UseShellExecute = true,
                         Verb = "open"
                     };
-                    if (File.Exists($"{Global.config.ModsFolder}{Global.s}PizzaOven.win"))
-                        ps.Arguments = $@"-game ""{Global.config.ModsFolder}{Global.s}PizzaOven.win""";
                     Process.Start(ps);
                 }
                 catch (Exception ex)
