@@ -13,20 +13,9 @@ namespace PizzaOven
         // Restore all backups created from previous build
         public static bool Restart()
         {
-            var SoundsFolder = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop";
-            var LanguageFolder = $"{Global.config.ModsFolder}{Global.s}lang";
-            // Restore all backups of .bank files
-            RestoreDirectory(SoundsFolder);
-            
-            // Delete font folder if it exists
-            //if (Directory.Exists($"{LanguageFolder}{Global.s}fonts"))
-                //Directory.Delete($"{LanguageFolder}{Global.s}fonts", true);
-            // Delete all language files that aren't English
-            //foreach (var file in Directory.GetFiles(LanguageFolder))
-                //if (!Path.GetFileName(file).Equals("english.txt", StringComparison.InvariantCultureIgnoreCase))
-                    //File.Delete(file);
-
-            // Delete modded .win
+            // Restore all backups
+            RestoreDirectory(Global.config.ModsFolder);
+            // Delete .win from older version of Pizza Oven
             if (File.Exists($"{Global.config.ModsFolder}{Global.s}PizzaOven.win"))
                 File.Delete($"{Global.config.ModsFolder}{Global.s}PizzaOven.win");
             return true;
@@ -64,15 +53,10 @@ namespace PizzaOven
                             // Attempt to patch file
                             Global.logger.WriteLine($"Attempting to patch {file} with {modFile}...", LoggerType.Info);
                             Patch(file, modFile, $"{Path.GetDirectoryName(file)}{Global.s}temp", xdelta);
-                            if (Path.GetFileName(file).Equals("data.win", StringComparison.InvariantCultureIgnoreCase))
-                                File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", $"{Path.GetDirectoryName(file)}{Global.s}PizzaOven.win", true);
-                            else
-                            {
-                                // Only make backup if it doesn't already exist
-                                if (!File.Exists($"{file}.po"))
-                                    File.Copy(file, $"{file}.po", true);
-                                File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", file, true);
-                            }
+                            // Only make backup if it doesn't already exist
+                            if (!File.Exists($"{file}.po"))
+                                File.Copy(file, $"{file}.po", true);
+                            File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", file, true);
                             successes++;
                         }
                         catch (Exception e)
@@ -119,14 +103,18 @@ namespace PizzaOven
                 // Copy over .win file in case modder provides entire file instead of .xdelta patch
                 else if (extension.Equals(".win", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}PizzaOven.win", true);
+                    var dataWin = $"{Global.config.ModsFolder}{Global.s}data.win";
+                    // Only make backup if it doesn't already exist
+                    if (!File.Exists($"{dataWin}.po"))
+                        File.Copy(dataWin, $"{dataWin}.po", true);
+                    File.Copy(modFile, dataWin, true);
                     Global.logger.WriteLine($"Copied over {modFile} to use instead of data.win", LoggerType.Info);
                     successes++;
                 }
                 // Copy over .bank file in case modder provides entire file instead of .xdelta patch
                 else if (extension.Equals(".bank", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var FileToReplace = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop{Global.s}{Path.GetFileName(modFile)}";
+                    var FileToReplace = $"{Global.config.ModsFolder}sound{Global.s}Desktop{Global.s}{Path.GetFileName(modFile)}";
                     if (File.Exists(FileToReplace))
                     {
                         // Only make backup if it doesn't already exist
