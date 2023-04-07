@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SharpCompress.Common;
 using SharpCompress.Readers;
+using System.Windows;
 
 namespace PizzaOven
 {

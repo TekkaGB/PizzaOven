@@ -14,6 +14,7 @@ using System.Reflection;
 using System.IO;
 using PizzaOven.UI;
 using System.Windows.Media.Imaging;
+using Onova.Models;
 
 namespace PizzaOven
 {
@@ -61,7 +62,8 @@ namespace PizzaOven
                             // Notify that the update is about to happen
                             MessageBox.Show($"Finished downloading {fileName}!\nPizza Oven will now restart.", "Notification", MessageBoxButton.OK);
                             // Update PizzaOven
-                            UpdateManager updateManager = new UpdateManager(new LocalPackageResolver($"{Global.assemblyLocation}{Global.s}Downloads{Global.s}PizzaOvenUpdate"), new ZipExtractor());
+                            UpdateManager updateManager = new UpdateManager(AssemblyMetadata.FromAssembly(Assembly.GetEntryAssembly(), Process.GetCurrentProcess().MainModule.FileName),
+                                new LocalPackageResolver($"{Global.assemblyLocation}{Global.s}Downloads{Global.s}PizzaOvenUpdate"), new ZipExtractor());
                             if (!Version.TryParse(onlineVersion, out Version version))
                             {
                                 MessageBox.Show($"Error parsing {onlineVersion}!\nCancelling update.", "Notification", MessageBoxButton.OK);
