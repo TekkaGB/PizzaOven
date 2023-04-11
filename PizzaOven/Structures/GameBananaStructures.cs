@@ -225,7 +225,7 @@ namespace PizzaOven
         [JsonIgnore]
         public bool HasLongCategoryName => CategoryName.Length > 30;
         [JsonIgnore]
-        public bool Compatible => AllFiles != null || AllFiles.Count > 0;
+        public bool Compatible => AllFiles != null;
 
         [JsonPropertyName("_tsDateUpdated")]
         public long DateUpdatedLong { get; set; }
