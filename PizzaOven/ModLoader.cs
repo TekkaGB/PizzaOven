@@ -18,6 +18,9 @@ namespace PizzaOven
             // Delete .win from older version of Pizza Oven
             if (File.Exists($"{Global.config.ModsFolder}{Global.s}PizzaOven.win"))
                 File.Delete($"{Global.config.ModsFolder}{Global.s}PizzaOven.win");
+            // decomp support
+            if (File.Exists($"{Global.config.ModsFolder}{Global.s}PizzaOven.exe"))
+                File.Delete($"{Global.config.ModsFolder}{Global.s}PizzaOven.exe");
             return true;
         }
         // Copy over mod files in order of ModList
@@ -27,6 +30,7 @@ namespace PizzaOven
             var successes = 0;
             var FilesToPatch = Directory.GetFiles($"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop").ToList();
             FilesToPatch.Insert(0, $"{Global.config.ModsFolder}{Global.s}data.win");
+            FilesToPatch.Insert(0, $"{Global.config.ModsFolder}{Global.s}PizzaTower.exe");
             var xdelta = $"{Global.assemblyLocation}{Global.s}Dependencies{Global.s}xdelta.exe";
             if (!File.Exists(xdelta))
             {
