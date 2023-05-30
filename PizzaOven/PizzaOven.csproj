@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\PizzaOvenIcon.ico</ApplicationIcon>
     <AssemblyName>PizzaOven</AssemblyName>
-    <AssemblyVersion>1.0.6.0</AssemblyVersion>
+    <AssemblyVersion>1.0.7.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
