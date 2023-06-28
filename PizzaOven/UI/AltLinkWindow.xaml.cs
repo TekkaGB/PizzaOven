@@ -44,7 +44,7 @@ namespace PizzaOven.UI
         {
             Button button = sender as Button;
             var item = button.DataContext as GameBananaAlternateFileSource;
-            var ps = new ProcessStartInfo(item.Url.AbsoluteUri)
+            var ps = new ProcessStartInfo(item.Url)
             {
                 UseShellExecute = true,
                 Verb = "open"

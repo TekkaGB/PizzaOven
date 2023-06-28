@@ -283,7 +283,7 @@ namespace PizzaOven
     public class GameBananaAlternateFileSource
     {
         [JsonPropertyName("url")]
-        public Uri Url { get; set; }
+        public string Url { get; set; }
         [JsonPropertyName("description")]
         public string Description { get; set; } = "Mirror";
     }
