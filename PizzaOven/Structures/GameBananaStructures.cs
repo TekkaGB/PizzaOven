@@ -241,7 +241,7 @@ namespace PizzaOven
         [JsonIgnore]
         public string DateAddedFormatted => $"Added {StringConverters.FormatTimeAgo(DateTime.UtcNow - DateAdded)}";
         [JsonIgnore]
-        public bool HasUpdates => DateAdded.CompareTo(DateUpdated) != 0;
+        public bool HasUpdates => DateAdded.CompareTo(DateUpdated) < 0;
         [JsonIgnore]
         public string DateUpdatedAgo => $"Updated {StringConverters.FormatTimeAgo(DateTime.UtcNow - DateUpdated)}";
         private string ConvertHtmlToText(string html)

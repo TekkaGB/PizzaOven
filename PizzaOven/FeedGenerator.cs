@@ -151,7 +151,6 @@ namespace PizzaOven
             
             // Get page number
             url += $"&_nPage={page}";
-            Global.logger.WriteLine(url, LoggerType.Info);
             return url;
         }
     }
