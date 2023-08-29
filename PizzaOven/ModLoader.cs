@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 namespace PizzaOven
@@ -15,6 +16,15 @@ namespace PizzaOven
         {
             // Restore all backups
             RestoreDirectory(Global.config.ModsFolder);
+            // Delete all banks that aren't vanilla
+            var banks = new List<string> (new string[] { "master.bank", "master.strings.bank", "music.bank", "sfx.bank" });
+            foreach (var file in Directory.GetFiles($"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop", "*", SearchOption.AllDirectories))
+                if (!banks.Contains(Path.GetFileName(file).ToLowerInvariant()))
+                    File.Delete(file);
+            // Delete empty folders
+            foreach (var directory in Directory.GetDirectories($"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop"))
+                if (Directory.GetFiles(directory).Length == 0 && Directory.GetDirectories(directory).Length == 0)
+                    Directory.Delete(directory, false);
             // Delete .win from older version of Pizza Oven
             if (File.Exists($"{Global.config.ModsFolder}{Global.s}PizzaOven.win"))
                 File.Delete($"{Global.config.ModsFolder}{Global.s}PizzaOven.win");
@@ -124,13 +134,19 @@ namespace PizzaOven
                             File.Copy(FileToReplace, $"{FileToReplace}.po", true);
                         File.Copy(modFile, FileToReplace, true);
                         Global.logger.WriteLine($"Copied over {modFile} to use in sound folder", LoggerType.Info);
-                        successes++;
                     }
+                    // Copy the file over if its not vanilla
                     else
                     {
-                        Global.logger.WriteLine($"{FileToReplace} does not exist", LoggerType.Error);
-                        errors++;
+                        var FileToAdd = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop{Global.s}{Path.GetFileName(modFile)}";
+                        // Add subdirectory name if it's not the same name as the mod folder
+                        if (!Path.GetFileName(Path.GetDirectoryName(modFile)).Equals(Path.GetFileName(mod), StringComparison.InvariantCultureIgnoreCase))
+                            FileToAdd = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop{Global.s}{Path.GetFileName(Path.GetDirectoryName(modFile))}{Global.s}{Path.GetFileName(modFile)}";
+                        Directory.CreateDirectory(Path.GetDirectoryName(FileToAdd));
+                        File.Copy(modFile, FileToAdd, true);
+
                     }
+                    successes++;
                 }
             }
             if (successes == 0)
