@@ -148,6 +148,14 @@ namespace PizzaOven
                     }
                     successes++;
                 }
+                // Extension .dll files
+                else if (extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    // Copy over file to game folder
+                    File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}{Path.GetFileName(modFile)}", true);
+                    Global.logger.WriteLine($"Copied over {modFile} to game folder", LoggerType.Info);
+                    successes++;
+                }
             }
             if (successes == 0)
                 Global.logger.WriteLine($"No file was used from the current mod", LoggerType.Error);
