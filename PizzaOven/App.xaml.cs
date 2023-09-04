@@ -37,24 +37,26 @@ namespace PizzaOven
         }
         protected async override void OnStartup(StartupEventArgs e)
         {
-            ShutdownMode = ShutdownMode.OnMainWindowClose;
-
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             RegistryConfig.InstallGBHandler();
-            MainWindow mw = new MainWindow();
             bool running = AlreadyRunning();
             if (!running)
             {
+                MainWindow mw = new MainWindow();
+                ShutdownMode = ShutdownMode.OnMainWindowClose;
                 mw.Show();
                 // Only check for updates if PizzaOven wasn't launched by 1-click install button
                 if (e.Args.Length == 0)
                     if (await AutoUpdater.CheckForPizzaOvenUpdate(new CancellationTokenSource()))
                         mw.Close();
+                if (e.Args.Length > 1 && e.Args[0] == "-download")
+                    new ModDownloader().Download(e.Args[1], running);
             }
-            if (e.Args.Length > 1 && e.Args[0] == "-download")
-                new ModDownloader().Download(e.Args[1], running);
-            else if (running)
+            else
+            {
                 MessageBox.Show("Pizza Oven is already running", "Warning", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                Application.Current.Shutdown();
+            }
         }
         private static void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
@@ -65,11 +67,14 @@ namespace PizzaOven
             e.Handled = true;
             App.Current.Dispatcher.Invoke((Action)delegate
             {
-                ((MainWindow)Current.MainWindow).ModGrid.IsEnabled = true;
-                ((MainWindow)Current.MainWindow).ConfigButton.IsEnabled = true;
-                ((MainWindow)Current.MainWindow).LaunchButton.IsEnabled = true;
-                ((MainWindow)Current.MainWindow).ClearButton.IsEnabled = true;
-                ((MainWindow)Current.MainWindow).UpdateButton.IsEnabled = true;
+                if (Current.MainWindow != null)
+                {
+                    ((MainWindow)Current.MainWindow).ModGrid.IsEnabled = true;
+                    ((MainWindow)Current.MainWindow).ConfigButton.IsEnabled = true;
+                    ((MainWindow)Current.MainWindow).LaunchButton.IsEnabled = true;
+                    ((MainWindow)Current.MainWindow).ClearButton.IsEnabled = true;
+                    ((MainWindow)Current.MainWindow).UpdateButton.IsEnabled = true;
+                }
             });
         }
     }
