@@ -13,6 +13,7 @@ using SharpCompress.Common;
 using SharpCompress.Readers;
 using SharpCompress.Archives.SevenZip;
 using SharpCompress.Archives;
+using SevenZipExtractor;
 
 namespace PizzaOven
 {
@@ -350,18 +351,9 @@ namespace PizzaOven
                     {
                         if (Path.GetExtension(_ArchiveSource).Equals(".7z", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            using (var archive = SevenZipArchive.Open(_ArchiveSource))
+                            using (var archive = new ArchiveFile(_ArchiveSource))
                             {
-                                var reader = archive.ExtractAllEntries();
-                                while (reader.MoveToNextEntry())
-                                {
-                                    if (!reader.Entry.IsDirectory)
-                                        reader.WriteEntryToDirectory(ArchiveDestination, new ExtractionOptions()
-                                        {
-                                            ExtractFullPath = true,
-                                            Overwrite = true
-                                        });
-                                }
+                                archive.Extract(ArchiveDestination);
                             }
                         }
                         else
