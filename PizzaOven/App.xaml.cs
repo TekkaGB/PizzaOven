@@ -49,10 +49,19 @@ namespace PizzaOven
                 if (e.Args.Length == 0)
                     if (await AutoUpdater.CheckForPizzaOvenUpdate(new CancellationTokenSource()))
                         mw.Close();
-                if (e.Args.Length > 1 && e.Args[0] == "-download")
-                    new ModDownloader().Download(e.Args[1], running);
             }
-            else
+
+            // Allow 1-click installs even if another instance is running
+            if (e.Args.Length > 1 && e.Args[0] == "-download") {
+                // For some reason the downloader doesn't work if we don't create a main window...
+                // (the code above already creates one when no instance is running)
+                if (running) {
+                    MainWindow mw = new MainWindow();
+                    ShutdownMode = ShutdownMode.OnMainWindowClose;
+                }
+                new ModDownloader().Download(e.Args[1], running);
+            }
+            else if (running)
             {
                 MessageBox.Show("Pizza Oven is already running", "Warning", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 Application.Current.Shutdown();
