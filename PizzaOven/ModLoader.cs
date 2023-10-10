@@ -78,6 +78,8 @@ namespace PizzaOven
                             File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", file, true);
                             Global.logger.WriteLine($"Applied {modFile} to {file}.", LoggerType.Info);
                             successes++;
+                            if (Path.GetFileName(modFile).ToLowerInvariant().Contains("yyc") && File.Exists($"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll"))
+                                File.Move($"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll", $"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll.po", true);
                         }
                         catch (Exception e)
                         {
@@ -198,9 +200,8 @@ namespace PizzaOven
         {
             if (Directory.Exists(path))
             {
-                foreach (var file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
-                    if (File.Exists($"{file}.po"))
-                        File.Move($"{file}.po", file, true);
+                foreach (var file in Directory.GetFiles(path, "*.po", SearchOption.AllDirectories))
+                    File.Move(file, Path.ChangeExtension(file, String.Empty), true);
             }
         }
     }
