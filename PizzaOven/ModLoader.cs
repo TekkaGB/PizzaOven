@@ -62,6 +62,9 @@ namespace PizzaOven
                     var success = false;
                     foreach (var file in FilesToPatch)
                     {
+                        // Attempt to checksum each xdelta patch
+                        string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
+                        WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
                         if (!File.Exists(file))
                         {
                             Global.logger.WriteLine($"{file} does not exist", LoggerType.Error);
@@ -177,6 +180,9 @@ namespace PizzaOven
             }
             if (successes == 0)
                 Global.logger.WriteLine($"No file was used from the current mod", LoggerType.Error);
+            // Reattempt to write xdelta patch
+                string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
+                WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
             return errors == 0 && successes > 0;
         }
 
@@ -202,6 +208,82 @@ namespace PizzaOven
             {
                 foreach (var file in Directory.GetFiles(path, "*.po", SearchOption.AllDirectories))
                     File.Move(file, Path.ChangeExtension(file, String.Empty), true);
+            }
+        }
+        // xdelta print header
+        private static void WindowChecksum(string patch, string xdelta, string checksumFilePath, string commonChecksum)
+        {
+            int vcdiffCopyWindowLength = 0;
+            string versionInfo = string.Empty;
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.CreateNoWindow = true;
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.FileName = xdelta;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.WorkingDirectory = Path.GetDirectoryName(xdelta);
+            startInfo.Arguments = $@"printhdr ""{patch}""";
+
+            // xdelta copy window length
+            using (Process process = new Process())
+            {
+                process.StartInfo = startInfo;
+                process.Start();
+
+                // Find copy window length
+                string line;
+                while ((line = process.StandardOutput.ReadLine()) != null)
+                {
+                    if (line.Contains("VCDIFF copy window length:"))
+                    {
+                        // Write window length whole num
+                        string[] header = line.Split(':');
+                        if (header.Length >= 2 && int.TryParse(header[1].Trim(), out int length))
+                        {
+                            vcdiffCopyWindowLength = length;
+                            Global.logger.WriteLine($"Checksum window length for {patch}: {vcdiffCopyWindowLength}", LoggerType.Info);
+                        }
+                        break;
+                    }
+                }
+
+                process.WaitForExit();
+            }
+
+            try
+            {
+                // Read all in .txt file
+                string[] checksumLines = File.ReadAllLines(checksumFilePath);
+                string prevLine = null;
+                foreach (string checksumLine in checksumLines)
+                {
+                    // Checksum is specified length
+                    if (!string.IsNullOrEmpty(checksumLine) && checksumLine.Length >= 8)
+                    {
+                        string checksumSubstring = checksumLine.Substring(0, 8);
+
+                        if (int.TryParse(checksumSubstring, out int checksum))
+                        {
+                            // Compare .txt and window length checksum
+                            if (checksum == vcdiffCopyWindowLength)
+                            {
+                                Global.logger.WriteLine($"Match found checksum file {commonChecksum}: {vcdiffCopyWindowLength}", LoggerType.Info);
+                                // Version txt above matching checksum
+                                if (!string.IsNullOrEmpty(prevLine))
+                                {
+                                    versionInfo = prevLine;
+                                    Global.logger.WriteLine($"Patch applies to Pizza Tower: {versionInfo}", LoggerType.Info);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    prevLine = checksumLine;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.logger.WriteLine($"Error while checking checksum file, {ex.Message}", LoggerType.Error);
             }
         }
     }
