@@ -50,6 +50,12 @@
     </None>
   </ItemGroup>
 
+	<ItemGroup>
+		<None Update="Dependencies\XDelta_Common_Checksum.txt">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
   <ItemGroup>
     <Page Update="UI\ChoiceWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
