@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -63,8 +64,9 @@ namespace PizzaOven
                     foreach (var file in FilesToPatch)
                     {
                         // Attempt to checksum each xdelta patch
-                        string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
-                        WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
+                            string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
+                            WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
+                        
                         if (!File.Exists(file))
                         {
                             Global.logger.WriteLine($"{file} does not exist", LoggerType.Error);
@@ -96,6 +98,9 @@ namespace PizzaOven
                     if (!success)
                     {
                         Global.logger.WriteLine($"{modFile} wasn't able to patch any file. Ensure that either the mod xdelta patch or your game version is up to date", LoggerType.Error);
+                        // Reattempt to write xdelta patch
+                        string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
+                        WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
                         errors++;
                     }
                 }
@@ -180,9 +185,6 @@ namespace PizzaOven
             }
             if (successes == 0)
                 Global.logger.WriteLine($"No file was used from the current mod", LoggerType.Error);
-            // Reattempt to write xdelta patch
-                string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
-                WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
             return errors == 0 && successes > 0;
         }
 
@@ -210,6 +212,7 @@ namespace PizzaOven
                     File.Move(file, Path.ChangeExtension(file, String.Empty), true);
             }
         }
+
         // xdelta print header
         private static void WindowChecksum(string patch, string xdelta, string checksumFilePath, string commonChecksum)
         {
@@ -286,5 +289,7 @@ namespace PizzaOven
                 Global.logger.WriteLine($"Error while checking checksum file, {ex.Message}", LoggerType.Error);
             }
         }
+
+
     }
 }
