@@ -12,6 +12,7 @@ namespace PizzaOven
 {
     public static class ModLoader
     {
+        private static string version = null;
         // Restore all backups created from previous build
         public static bool Restart()
         {
@@ -103,8 +104,7 @@ namespace PizzaOven
                     if (extension.Equals(".xdelta", StringComparison.InvariantCultureIgnoreCase))
                     {
                         // Attempt to checksum each xdelta patch
-                        string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
-                        WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
+                        WindowChecksum(modFile, xdelta);
                         var success = false;
                         var gotAccessDeniedError = false;
                         foreach (var file in FilesToPatch)
@@ -117,13 +117,13 @@ namespace PizzaOven
                             try
                             {
                                 // Attempt to patch file
-                                Global.logger.WriteLine($"Attempting to patch {file} with {modFile}...", LoggerType.Info);
+                                Global.logger.WriteLine($"Attempting to patch {Path.GetFileName(file)} with {Path.GetFileName(modFile)}...", LoggerType.Info);
                                 Patch(file, modFile, $"{Path.GetDirectoryName(file)}{Global.s}temp", xdelta);
                                 // Only make backup if it doesn't already exist
                                 if (!File.Exists($"{file}.po"))
                                     File.Copy(file, $"{file}.po", true);
                                 File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", file, true);
-                                Global.logger.WriteLine($"Applied {modFile} to {file}.", LoggerType.Info);
+                                Global.logger.WriteLine($"Applied {Path.GetFileName(modFile)} to {Path.GetFileName(file)}.", LoggerType.Info);
                                 successes++;
                                 if (Path.GetFileName(modFile).ToLowerInvariant().Contains("yyc") && File.Exists($"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll"))
                                     File.Move($"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll", $"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll.po", true);
@@ -131,11 +131,11 @@ namespace PizzaOven
                             catch (Exception e)
                             {
                                 if (e is System.UnauthorizedAccessException) {
-                                    Global.logger.WriteLine($"Access denied when trying to patch {file} with {modFile}", LoggerType.Warning);
+                                    Global.logger.WriteLine($"Access denied when trying to patch {Path.GetFileName(file)} with {Path.GetFileName(modFile)}", LoggerType.Warning);
                                     gotAccessDeniedError = true;
                                     break;
                                 }
-                                Global.logger.WriteLine($"Unable to patch {file} with {modFile}", LoggerType.Warning);
+                                Global.logger.WriteLine($"Unable to patch {Path.GetFileName(file)} with {Path.GetFileName(modFile)}", LoggerType.Warning);
                                 continue;
                             }
                             // Stop trying to patch if it was successful
@@ -146,11 +146,12 @@ namespace PizzaOven
                         {
                             if (gotAccessDeniedError)
                             {
-                                Global.logger.WriteLine($"{modFile} got an access denied error while patch a file. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
+                                Global.logger.WriteLine($"{Path.GetFileName(modFile)} got an access denied error while patch a file. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
                             }
                             else
                             {
-                                Global.logger.WriteLine($"{modFile} wasn't able to patch any file. Ensure that either the mod xdelta patch or your game version is up to date", LoggerType.Error);
+                                Global.logger.WriteLine($"{Path.GetFileName(modFile)} wasn't able to patch any file. Ensure that either the mod or your game version is up to date. {Path.GetFileName(modFile)} is intended for {version}. " +
+                                    $"If this version number matches with your current game version go to {Global.config.ModsFolder} and delete data.win.po and anything else with a .po extension then verify integrity of game files and try again.", LoggerType.Error);
                             }
                             errors++;
                         }
@@ -163,18 +164,13 @@ namespace PizzaOven
                         {
                             // Copy over file to lang folder
                             File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}lang{Global.s}{Path.GetFileName(modFile)}", true);
-                            Global.logger.WriteLine($"Copied over {modFile} to language folder", LoggerType.Info);
+                            Global.logger.WriteLine($"Copied over {Path.GetFileName(modFile)} to language folder", LoggerType.Info);
                             successes++;
                         }
                     }
                     // Font .png files
                     else if (extension.Equals(".png", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        Global.logger.WriteLine($"{modFile} wasn't able to patch any file. Ensure that either the mod xdelta patch or your game version is up to date", LoggerType.Error);
-                        // Reattempt to write xdelta patch
-                        string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
-                        WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
-                        errors++;
                         // Check if png is in fonts folder
                         if (modFile.Contains("fonts", StringComparison.InvariantCultureIgnoreCase))
                         {
@@ -182,7 +178,7 @@ namespace PizzaOven
                             Directory.CreateDirectory($"{Global.config.ModsFolder}{Global.s}lang{Global.s}fonts");
                             // Copy over file to fonts folder
                             File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}lang{Global.s}fonts{Global.s}{Path.GetFileName(modFile)}", true);
-                            Global.logger.WriteLine($"Copied over {modFile} to fonts folder", LoggerType.Info);
+                            Global.logger.WriteLine($"Copied over {Path.GetFileName(modFile)} to fonts folder", LoggerType.Info);
                             successes++;
                         }
                     }
@@ -194,7 +190,7 @@ namespace PizzaOven
                         if (!File.Exists($"{dataWin}.po"))
                             File.Copy(dataWin, $"{dataWin}.po", true);
                         File.Copy(modFile, dataWin, true);
-                        Global.logger.WriteLine($"Copied over {modFile} to use instead of data.win", LoggerType.Info);
+                        Global.logger.WriteLine($"Copied over {Path.GetFileName(modFile)} to use instead of data.win", LoggerType.Info);
                         successes++;
                     }
                     // Copy over .bank file in case modder provides entire file instead of .xdelta patch
@@ -207,7 +203,7 @@ namespace PizzaOven
                             if (!File.Exists($"{FileToReplace}.po"))
                                 File.Copy(FileToReplace, $"{FileToReplace}.po", true);
                             File.Copy(modFile, FileToReplace, true);
-                            Global.logger.WriteLine($"Copied over {modFile} to use in sound folder", LoggerType.Info);
+                            Global.logger.WriteLine($"Copied over {Path.GetFileName(modFile)} to use in sound folder", LoggerType.Info);
                         }
                         // Copy the file over if its not vanilla
                         else
@@ -227,7 +223,7 @@ namespace PizzaOven
                     {
                         // Copy over file to game folder
                         File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}{Path.GetFileName(modFile)}", true);
-                        Global.logger.WriteLine($"Copied over {modFile} to game folder", LoggerType.Info);
+                        Global.logger.WriteLine($"Copied over {Path.GetFileName(modFile)} to game folder", LoggerType.Info);
                         successes++;
                     }
                     // Video Files
@@ -235,14 +231,14 @@ namespace PizzaOven
                     {
                         // Copy over file to game folder
                         File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}{Path.GetFileName(modFile)}", true);
-                        Global.logger.WriteLine($"Copied over {modFile} to game folder", LoggerType.Info);
+                        Global.logger.WriteLine($"Copied over {Path.GetFileName(modFile)} to game folder", LoggerType.Info);
                         successes++;
                     }
                 }
                 catch (Exception e)
                 {
                     if (e is System.UnauthorizedAccessException)
-                        Global.logger.WriteLine($"Access denied when trying to apply {modFile}. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
+                        Global.logger.WriteLine($"Access denied when trying to apply {Path.GetFileName(modFile)}. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
                     else
                         throw;
                 }
@@ -280,7 +276,7 @@ namespace PizzaOven
                     catch (Exception e)
                     {
                         if (e is System.UnauthorizedAccessException)
-                            Global.logger.WriteLine($"Access denied when trying to restore {file}. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
+                            Global.logger.WriteLine($"Access denied when trying to restore {Path.GetFileName(file)}. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
                         else
                             throw;
                     }
@@ -289,10 +285,9 @@ namespace PizzaOven
         }
 
         // xdelta print header
-        private static void WindowChecksum(string patch, string xdelta, string checksumFilePath, string commonChecksum)
+        private static void WindowChecksum(string patch, string xdelta)
         {
             int vcdiffCopyWindowLength = 0;
-            string versionInfo = string.Empty;
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.CreateNoWindow = true;
             startInfo.UseShellExecute = false;
@@ -331,7 +326,12 @@ namespace PizzaOven
             try
             {
                 // Read all in .txt file
-                string[] checksumLines = File.ReadAllLines(checksumFilePath);
+                string[] checksumLines = null;
+                using (Stream stream = Assembly.GetEntryAssembly().GetManifestResourceStream("PizzaOven.Dependencies.XDelta_Common_Checksum.txt"))
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    checksumLines = EnumerateLines(reader).ToArray();
+                }
                 string prevLine = null;
                 foreach (string checksumLine in checksumLines)
                 {
@@ -345,14 +345,14 @@ namespace PizzaOven
                             // Compare .txt and window length checksum
                             if (checksum == vcdiffCopyWindowLength)
                             {
-                                Global.logger.WriteLine($"Match found checksum file {commonChecksum}: {vcdiffCopyWindowLength}", LoggerType.Info);
+                                Global.logger.WriteLine($"Match found checksum: {vcdiffCopyWindowLength}", LoggerType.Info);
                                 // Version txt above matching checksum
                                 if (!string.IsNullOrEmpty(prevLine))
                                 {
-                                    versionInfo = prevLine;
-                                    Global.logger.WriteLine($"Patch applies to Pizza Tower: {versionInfo}", LoggerType.Info);
+                                    version = prevLine;
+                                    Global.logger.WriteLine($"Patch applies to Pizza Tower: {version}", LoggerType.Info);
                                 }
-                                break;
+                                return;
                             }
                         }
                     }
@@ -363,8 +363,16 @@ namespace PizzaOven
             {
                 Global.logger.WriteLine($"Error while checking checksum file, {ex.Message}", LoggerType.Error);
             }
+            version = null;
         }
 
-
+        private static IEnumerable<string> EnumerateLines(TextReader reader)
+        {
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                yield return line;
+            }
+        }
     }
 }

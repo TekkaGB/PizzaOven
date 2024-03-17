@@ -7,13 +7,14 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\PizzaOvenIcon.ico</ApplicationIcon>
     <AssemblyName>PizzaOven</AssemblyName>
-    <AssemblyVersion>1.0.13.0</AssemblyVersion>
+    <AssemblyVersion>1.0.14.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Assets\PizzaOvenLogo.png" />
     <None Remove="Assets\PizzaOvenPreview.png" />
     <None Remove="Assets\RobotoMono-Regular.ttf" />
+    <None Remove="Dependencies\XDelta_Common_Checksum.txt" />
     <None Remove="GameBanana.png" />
   </ItemGroup>
 
@@ -36,6 +37,9 @@
     <Resource Include="Assets\PizzaOvenLogo.png" />
     <Resource Include="Assets\PizzaOvenPreview.png" />
     <Resource Include="Assets\RobotoMono-Regular.ttf" />
+    <EmbeddedResource Include="Dependencies\XDelta_Common_Checksum.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -49,12 +53,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-	<ItemGroup>
-		<None Update="Dependencies\XDelta_Common_Checksum.txt">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
 
   <ItemGroup>
     <Page Update="UI\ChoiceWindow.xaml">
