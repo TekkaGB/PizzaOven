@@ -21,7 +21,17 @@ namespace PizzaOven
             var banks = new List<string> (new string[] { "master.bank", "master.strings.bank", "music.bank", "sfx.bank" });
             foreach (var file in Directory.GetFiles($"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop", "*", SearchOption.AllDirectories))
                 if (!banks.Contains(Path.GetFileName(file).ToLowerInvariant()))
-                    File.Delete(file);
+                    try {
+                        File.Delete(file);
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is System.UnauthorizedAccessException)
+                            Global.logger.WriteLine($"Access denied when trying to delete {file}. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
+                        else
+                            throw;
+                        return false;
+                    }
             // Delete all dlls that aren't vanilla
             var dlls = new List<string>(new string[] { "fmod.dll", "fmod-gamemaker.dll", "fmodstudio.dll", "gameframe_x64.dll", "steam_api.dll",
             "steam_api64.dll", "steamworks_x64.dll"});
@@ -29,14 +39,44 @@ namespace PizzaOven
             foreach (var file in Directory.GetFiles($"{Global.config.ModsFolder}", "*", SearchOption.TopDirectoryOnly))
                 if ((Path.GetExtension(file).ToLowerInvariant() == ".dll" && !dlls.Contains(Path.GetFileName(file).ToLowerInvariant()))
                     || Path.GetExtension(file).ToLowerInvariant() == ".mp4")
-                    File.Delete(file);
+                        try {
+                            File.Delete(file);
+                        }
+                        catch (Exception e)
+                        {
+                            if (e is System.UnauthorizedAccessException)
+                                Global.logger.WriteLine($"Access denied when trying to delete {file}. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
+                            else
+                                throw;
+                            return false;
+                        }
             // Delete empty folders
             foreach (var directory in Directory.GetDirectories($"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop"))
-                if (Directory.GetFiles(directory).Length == 0 && Directory.GetDirectories(directory).Length == 0)
-                    Directory.Delete(directory, false);
+                    try {
+                        if (Directory.GetFiles(directory).Length == 0 && Directory.GetDirectories(directory).Length == 0)
+                            Directory.Delete(directory, false);
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is System.UnauthorizedAccessException)
+                            Global.logger.WriteLine($"Access denied when trying to delete {directory}. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
+                        else
+                            throw;
+                        return false;
+                    }
             // Delete .win from older version of Pizza Oven
             if (File.Exists($"{Global.config.ModsFolder}{Global.s}PizzaOven.win"))
-                File.Delete($"{Global.config.ModsFolder}{Global.s}PizzaOven.win");
+                try {
+                    File.Delete($"{Global.config.ModsFolder}{Global.s}PizzaOven.win");
+                }
+                catch (Exception e)
+                {
+                    if (e is System.UnauthorizedAccessException)
+                        Global.logger.WriteLine($"Access denied when trying to delete {Global.config.ModsFolder}{Global.s}PizzaOven.win. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
+                    else
+                        throw;
+                    return false;
+                }
             return true;
         }
         // Copy over mod files in order of ModList
@@ -57,130 +97,154 @@ namespace PizzaOven
             foreach (var modFile in Directory.GetFiles(mod, "*", SearchOption.AllDirectories))
             {
                 var extension = Path.GetExtension(modFile);
-                // xdelta patches
-                if (extension.Equals(".xdelta", StringComparison.InvariantCultureIgnoreCase))
+                try
                 {
-                    var success = false;
-                    foreach (var file in FilesToPatch)
+                    // xdelta patches
+                    if (extension.Equals(".xdelta", StringComparison.InvariantCultureIgnoreCase))
                     {
                         // Attempt to checksum each xdelta patch
-                            string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
-                            WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
-                        
-                        if (!File.Exists(file))
+                        string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
+                        WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
+                        var success = false;
+                        var gotAccessDeniedError = false;
+                        foreach (var file in FilesToPatch)
                         {
-                            Global.logger.WriteLine($"{file} does not exist", LoggerType.Error);
-                            continue;
+                            if (!File.Exists(file))
+                            {
+                                Global.logger.WriteLine($"{file} does not exist", LoggerType.Error);
+                                continue;
+                            }
+                            try
+                            {
+                                // Attempt to patch file
+                                Global.logger.WriteLine($"Attempting to patch {file} with {modFile}...", LoggerType.Info);
+                                Patch(file, modFile, $"{Path.GetDirectoryName(file)}{Global.s}temp", xdelta);
+                                // Only make backup if it doesn't already exist
+                                if (!File.Exists($"{file}.po"))
+                                    File.Copy(file, $"{file}.po", true);
+                                File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", file, true);
+                                Global.logger.WriteLine($"Applied {modFile} to {file}.", LoggerType.Info);
+                                successes++;
+                                if (Path.GetFileName(modFile).ToLowerInvariant().Contains("yyc") && File.Exists($"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll"))
+                                    File.Move($"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll", $"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll.po", true);
+                            }
+                            catch (Exception e)
+                            {
+                                if (e is System.UnauthorizedAccessException) {
+                                    Global.logger.WriteLine($"Access denied when trying to patch {file} with {modFile}", LoggerType.Warning);
+                                    gotAccessDeniedError = true;
+                                    break;
+                                }
+                                Global.logger.WriteLine($"Unable to patch {file} with {modFile}", LoggerType.Warning);
+                                continue;
+                            }
+                            // Stop trying to patch if it was successful
+                            success = true;
+                            break;
                         }
-                        try
+                        if (!success)
                         {
-                            // Attempt to patch file
-                            Global.logger.WriteLine($"Attempting to patch {file} with {modFile}...", LoggerType.Info);
-                            Patch(file, modFile, $"{Path.GetDirectoryName(file)}{Global.s}temp", xdelta);
-                            // Only make backup if it doesn't already exist
-                            if (!File.Exists($"{file}.po"))
-                                File.Copy(file, $"{file}.po", true);
-                            File.Move($"{Path.GetDirectoryName(file)}{Global.s}temp", file, true);
-                            Global.logger.WriteLine($"Applied {modFile} to {file}.", LoggerType.Info);
-                            successes++;
-                            if (Path.GetFileName(modFile).ToLowerInvariant().Contains("yyc") && File.Exists($"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll"))
-                                File.Move($"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll", $"{Global.config.ModsFolder}{Global.s}Steamworks_x64.dll.po", true);
+                            if (gotAccessDeniedError)
+                            {
+                                Global.logger.WriteLine($"{modFile} got an access denied error while patch a file. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
+                            }
+                            else
+                            {
+                                Global.logger.WriteLine($"{modFile} wasn't able to patch any file. Ensure that either the mod xdelta patch or your game version is up to date", LoggerType.Error);
+                            }
+                            errors++;
                         }
-                        catch (Exception e)
-                        {
-                            Global.logger.WriteLine($"Unable to patch {file} with {modFile}", LoggerType.Warning);
-                            continue;
-                        }
-                        // Stop trying to patch if it was successful
-                        success = true;
-                        break;
                     }
-                    if (!success)
+                    // Language .txt files
+                    else if (extension.Equals(".txt", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        // Verify .txt file is for language
+                        if (File.ReadAllText(modFile).Contains("lang = ", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            // Copy over file to lang folder
+                            File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}lang{Global.s}{Path.GetFileName(modFile)}", true);
+                            Global.logger.WriteLine($"Copied over {modFile} to language folder", LoggerType.Info);
+                            successes++;
+                        }
+                    }
+                    // Font .png files
+                    else if (extension.Equals(".png", StringComparison.InvariantCultureIgnoreCase))
                     {
                         Global.logger.WriteLine($"{modFile} wasn't able to patch any file. Ensure that either the mod xdelta patch or your game version is up to date", LoggerType.Error);
                         // Reattempt to write xdelta patch
                         string checksumtxt = "Dependencies/XDelta_Common_Checksum.txt";
                         WindowChecksum(modFile, xdelta, checksumtxt, checksumtxt);
                         errors++;
+                        // Check if png is in fonts folder
+                        if (modFile.Contains("fonts", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            // Create fonts folder
+                            Directory.CreateDirectory($"{Global.config.ModsFolder}{Global.s}lang{Global.s}fonts");
+                            // Copy over file to fonts folder
+                            File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}lang{Global.s}fonts{Global.s}{Path.GetFileName(modFile)}", true);
+                            Global.logger.WriteLine($"Copied over {modFile} to fonts folder", LoggerType.Info);
+                            successes++;
+                        }
                     }
-                }
-                // Language .txt files
-                else if (extension.Equals(".txt", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    // Verify .txt file is for language
-                    if (File.ReadAllText(modFile).Contains("lang = ", StringComparison.InvariantCultureIgnoreCase))
+                    // Copy over .win file in case modder provides entire file instead of .xdelta patch
+                    else if (extension.Equals(".win", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        // Copy over file to lang folder
-                        File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}lang{Global.s}{Path.GetFileName(modFile)}", true);
-                        Global.logger.WriteLine($"Copied over {modFile} to language folder", LoggerType.Info);
-                        successes++;
-                    }
-                }
-                // Font .png files
-                else if (extension.Equals(".png", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    // Check if png is in fonts folder
-                    if (modFile.Contains("fonts", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        // Create fonts folder
-                        Directory.CreateDirectory($"{Global.config.ModsFolder}{Global.s}lang{Global.s}fonts");
-                        // Copy over file to fonts folder
-                        File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}lang{Global.s}fonts{Global.s}{Path.GetFileName(modFile)}", true);
-                        Global.logger.WriteLine($"Copied over {modFile} to fonts folder", LoggerType.Info);
-                        successes++;
-                    }
-                }
-                // Copy over .win file in case modder provides entire file instead of .xdelta patch
-                else if (extension.Equals(".win", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var dataWin = $"{Global.config.ModsFolder}{Global.s}data.win";
-                    // Only make backup if it doesn't already exist
-                    if (!File.Exists($"{dataWin}.po"))
-                        File.Copy(dataWin, $"{dataWin}.po", true);
-                    File.Copy(modFile, dataWin, true);
-                    Global.logger.WriteLine($"Copied over {modFile} to use instead of data.win", LoggerType.Info);
-                    successes++;
-                }
-                // Copy over .bank file in case modder provides entire file instead of .xdelta patch
-                else if (extension.Equals(".bank", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var FileToReplace = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop{Global.s}{Path.GetFileName(modFile)}";
-                    if (File.Exists(FileToReplace))
-                    {
+                        var dataWin = $"{Global.config.ModsFolder}{Global.s}data.win";
                         // Only make backup if it doesn't already exist
-                        if (!File.Exists($"{FileToReplace}.po"))
-                            File.Copy(FileToReplace, $"{FileToReplace}.po", true);
-                        File.Copy(modFile, FileToReplace, true);
-                        Global.logger.WriteLine($"Copied over {modFile} to use in sound folder", LoggerType.Info);
+                        if (!File.Exists($"{dataWin}.po"))
+                            File.Copy(dataWin, $"{dataWin}.po", true);
+                        File.Copy(modFile, dataWin, true);
+                        Global.logger.WriteLine($"Copied over {modFile} to use instead of data.win", LoggerType.Info);
+                        successes++;
                     }
-                    // Copy the file over if its not vanilla
-                    else
+                    // Copy over .bank file in case modder provides entire file instead of .xdelta patch
+                    else if (extension.Equals(".bank", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        var FileToAdd = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop{Global.s}{Path.GetFileName(modFile)}";
-                        // Add subdirectory name if it's not the same name as the mod folder
-                        if (!Path.GetFileName(Path.GetDirectoryName(modFile)).Equals(Path.GetFileName(mod), StringComparison.InvariantCultureIgnoreCase))
-                            FileToAdd = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop{Global.s}{Path.GetFileName(Path.GetDirectoryName(modFile))}{Global.s}{Path.GetFileName(modFile)}";
-                        Directory.CreateDirectory(Path.GetDirectoryName(FileToAdd));
-                        File.Copy(modFile, FileToAdd, true);
+                        var FileToReplace = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop{Global.s}{Path.GetFileName(modFile)}";
+                        if (File.Exists(FileToReplace))
+                        {
+                            // Only make backup if it doesn't already exist
+                            if (!File.Exists($"{FileToReplace}.po"))
+                                File.Copy(FileToReplace, $"{FileToReplace}.po", true);
+                            File.Copy(modFile, FileToReplace, true);
+                            Global.logger.WriteLine($"Copied over {modFile} to use in sound folder", LoggerType.Info);
+                        }
+                        // Copy the file over if its not vanilla
+                        else
+                        {
+                            var FileToAdd = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop{Global.s}{Path.GetFileName(modFile)}";
+                            // Add subdirectory name if it's not the same name as the mod folder
+                            if (!Path.GetFileName(Path.GetDirectoryName(modFile)).Equals(Path.GetFileName(mod), StringComparison.InvariantCultureIgnoreCase))
+                                FileToAdd = $"{Global.config.ModsFolder}{Global.s}sound{Global.s}Desktop{Global.s}{Path.GetFileName(Path.GetDirectoryName(modFile))}{Global.s}{Path.GetFileName(modFile)}";
+                            Directory.CreateDirectory(Path.GetDirectoryName(FileToAdd));
+                            File.Copy(modFile, FileToAdd, true);
 
+                        }
+                        successes++;
                     }
-                    successes++;
+                    // Extension .dll files
+                    else if (extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        // Copy over file to game folder
+                        File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}{Path.GetFileName(modFile)}", true);
+                        Global.logger.WriteLine($"Copied over {modFile} to game folder", LoggerType.Info);
+                        successes++;
+                    }
+                    // Video Files
+                    else if (extension.Equals(".mp4", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        // Copy over file to game folder
+                        File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}{Path.GetFileName(modFile)}", true);
+                        Global.logger.WriteLine($"Copied over {modFile} to game folder", LoggerType.Info);
+                        successes++;
+                    }
                 }
-                // Extension .dll files
-                else if (extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase))
+                catch (Exception e)
                 {
-                    // Copy over file to game folder
-                    File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}{Path.GetFileName(modFile)}", true);
-                    Global.logger.WriteLine($"Copied over {modFile} to game folder", LoggerType.Info);
-                    successes++;
-                }
-                // Video Files
-                else if (extension.Equals(".mp4", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    // Copy over file to game folder
-                    File.Copy(modFile, $"{Global.config.ModsFolder}{Global.s}{Path.GetFileName(modFile)}", true);
-                    Global.logger.WriteLine($"Copied over {modFile} to game folder", LoggerType.Info);
-                    successes++;
+                    if (e is System.UnauthorizedAccessException)
+                        Global.logger.WriteLine($"Access denied when trying to apply {modFile}. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
+                    else
+                        throw;
                 }
             }
             if (successes == 0)
@@ -208,8 +272,19 @@ namespace PizzaOven
         {
             if (Directory.Exists(path))
             {
-                foreach (var file in Directory.GetFiles(path, "*.po", SearchOption.AllDirectories))
-                    File.Move(file, Path.ChangeExtension(file, String.Empty), true);
+                foreach (var file in Directory.GetFiles(path, "*.po", SearchOption.AllDirectories)) {
+                    try
+                    {
+                        File.Move(file, Path.ChangeExtension(file, String.Empty), true);
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is System.UnauthorizedAccessException)
+                            Global.logger.WriteLine($"Access denied when trying to restore {file}. Try reinstalling Pizza Tower to a folder you have access to or running Pizza Oven in administrator mode", LoggerType.Error);
+                        else
+                            throw;
+                    }
+                }
             }
         }
 
